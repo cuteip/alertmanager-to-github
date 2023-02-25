@@ -1,5 +1,5 @@
 TAG := $(shell git describe --tags --always --dirty)
-IMAGE ?= ghcr.io/pfnet-research/alertmanager-to-github:$(TAG)
+IMAGE ?= ghcr.io/cuteip/alertmanager-to-github:$(TAG)
 ARCH ?= amd64
 ALL_ARCH ?= amd64 arm64
 
