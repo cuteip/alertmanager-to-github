@@ -32,5 +32,5 @@
 [tagpr]
 	vPrefix = true
 	releaseBranch = master
-	versionFile = -
-	changelog = false 
+	versionFile = pkg/cli/version.go
+	changelog = false
