@@ -32,6 +32,7 @@ type WebhookAlert struct {
 	StartsAt     time.Time         `json:"startsAt"`
 	EndsAt       time.Time         `json:"endsAt"`
 	GeneratorURL string            `json:"generatorURL"`
+	Fingerprint  string            `json:"fingerprint"`
 }
 
 func (p *WebhookPayload) LabelKeysExceptCommon() []string {
