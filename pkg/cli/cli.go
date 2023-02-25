@@ -97,8 +97,9 @@ var templates embed.FS
 
 func App() *cli.App {
 	return &cli.App{
-		Name:  os.Args[0],
-		Usage: "Webhook receiver Alertmanager to create GitHub issues",
+		Name:    os.Args[0],
+		Version: version,
+		Usage:   "Webhook receiver Alertmanager to create GitHub issues",
 		Commands: []*cli.Command{
 			{
 				Name:  "start",
