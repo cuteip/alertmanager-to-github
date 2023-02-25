@@ -21,6 +21,7 @@ import (
 const flagListen = "listen"
 const flagGitHubURL = "github-url"
 const flagLabels = "labels"
+const flagKeepLabels = "keep-labels"
 const flagBodyTemplateFile = "body-template-file"
 const flagTitleTemplateFile = "title-template-file"
 const flagGitHubToken = "github-token"
@@ -125,6 +126,11 @@ func App() *cli.App {
 						Usage:   "Issue labels",
 						EnvVars: []string{"ATG_LABELS"},
 					},
+					&cli.StringSliceFlag{
+						Name:    flagKeepLabels,
+						Usage:   "Keep labels from GroupLabels and CommonLabels",
+						EnvVars: []string{"ATG_KEEP_LABELS"},
+					},
 					&cli.StringFlag{
 						Name:    flagBodyTemplateFile,
 						Usage:   "Body template file",
@@ -150,7 +156,7 @@ func App() *cli.App {
 					&cli.BoolFlag{
 						Name:     flagAutoCloseResolvedIssues,
 						Required: false,
-						Value: true,
+						Value:    true,
 						Usage:    "Should issues be automatically closed when resolved",
 						EnvVars:  []string{"ATG_AUTO_CLOSE_RESOLVED_ISSUES"},
 					},
@@ -264,6 +270,7 @@ func actionStart(c *cli.Context) error {
 	}
 	nt.GitHubClient = githubClient
 	nt.Labels = c.StringSlice(flagLabels)
+	nt.KeepLabels = c.StringSlice(flagKeepLabels)
 	nt.BodyTemplate = bodyTemplate
 	nt.TitleTemplate = titleTemplate
 	nt.AlertIDTemplate = alertIDTemplate

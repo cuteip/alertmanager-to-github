@@ -64,6 +64,7 @@ type GitHubNotifier struct {
 	TitleTemplate           *template.Template
 	AlertIDTemplate         *template.Template
 	Labels                  []string
+	KeepLabels              []string
 	AutoCloseResolvedIssues bool
 }
 
@@ -99,6 +100,24 @@ func (n *GitHubNotifier) Notify(ctx context.Context, payload *types.WebhookPaylo
 	labels := n.Labels
 	if l := queryParams.Get("labels"); l != "" {
 		labels = strings.Split(l, ",")
+	}
+
+	if len(n.KeepLabels) != 0 {
+		// CommonLabels, GroupLabels とで、ラベル名が重複しない想定
+		// 重複したら GroupLabels で上書き（どっちで上書きすれば使い勝手が良いかはわからない）
+		alertLabels := payload.CommonLabels
+		for gk, gv := range payload.GroupLabels {
+			alertLabels[gk] = gv
+		}
+
+		for alertLabelKey, alertLabelValue := range alertLabels {
+			for _, keepLabel := range n.KeepLabels {
+				if keepLabel == alertLabelKey {
+					// アラートから保持するラベルは、'key/value' の '/' 区切りとする
+					labels = append(labels, fmt.Sprintf("%s/%s", alertLabelKey, alertLabelValue))
+				}
+			}
+		}
 	}
 
 	alertID, err := n.getAlertID(payload)
