@@ -7,6 +7,12 @@ on:
   # dispatch from tagpr.yaml workflow
   workflow_dispatch:
 
+permissions:
+  # goreleaser が release 作成のため
+  contents: write
+  # ghcr.io に docker push するため
+  packages: write
+
 jobs:
   container:
     runs-on: ubuntu-latest
