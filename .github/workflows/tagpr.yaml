@@ -8,6 +8,8 @@ permissions:
   # tagpr が PR を作成する
   pull-requests: write
   contents: write
+  # dispatch のため https://docs.github.com/ja/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event
+  actions: write
 
 jobs:
   tagpr:
