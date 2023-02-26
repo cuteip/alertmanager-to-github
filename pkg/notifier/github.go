@@ -66,6 +66,7 @@ type GitHubNotifier struct {
 	Labels                  []string
 	KeepLabels              []string
 	AutoCloseResolvedIssues bool
+	NewIssues               bool
 }
 
 func NewGitHub() (*GitHubNotifier, error) {
@@ -126,6 +127,9 @@ func (n *GitHubNotifier) Notify(ctx context.Context, payload *types.WebhookPaylo
 	}
 
 	query := fmt.Sprintf(`is:issue repo:%s/%s "%s"`, owner, repo, alertID)
+	if n.NewIssues {
+		query += " is:open"
+	}
 	searchResult, response, err := n.GitHubClient.Search.Issues(ctx, query, &github.SearchOptions{
 		TextMatch: true,
 	})
@@ -239,6 +243,9 @@ func (n *GitHubNotifier) Notify(ctx context.Context, payload *types.WebhookPaylo
 
 func (n *GitHubNotifier) cleanupIssues(ctx context.Context, owner, repo, alertID string) error {
 	query := fmt.Sprintf(`is:issue repo:%s/%s "%s"`, owner, repo, alertID)
+	if n.NewIssues {
+		query += " is:open"
+	}
 	searchResult, response, err := n.GitHubClient.Search.Issues(ctx, query, &github.SearchOptions{
 		TextMatch: true,
 	})

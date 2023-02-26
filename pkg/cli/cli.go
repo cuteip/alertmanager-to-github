@@ -34,6 +34,7 @@ const flagAutoCloseResolvedIssues = "auto-close-resolved-issues"
 const flagGitHubAppPrivateKeyFile = "github-app-private-key-file"
 const flagGitHubAppAppID = "github-app-app-id"
 const flagGitHubAppInstallationID = "github-app-installation-id"
+const flagNewIssues = "new-issues"
 
 const defaultPayload = `{
   "version": "4",
@@ -179,6 +180,12 @@ func App() *cli.App {
 						Name:    flagGitHubAppInstallationID,
 						Usage:   fmt.Sprintf("GitHub App's installation id (required if %s)", flagGitHubAppPrivateKeyFile),
 						EnvVars: []string{"ATG_GITHUB_APP_INSTALLATION_ID"},
+					},
+					&cli.BoolFlag{
+						Name:    flagNewIssues,
+						Value:   false,
+						Usage:   "if false, reopen issues when fired and already exsits 'alertID' issue. if true, create 'new' issue.",
+						EnvVars: []string{"ATG_NEW_ISSUES"},
 					},
 				},
 			},
@@ -339,6 +346,7 @@ func actionStart(c *cli.Context) error {
 	nt.TitleTemplate = titleTemplate
 	nt.AlertIDTemplate = alertIDTemplate
 	nt.AutoCloseResolvedIssues = c.Bool(flagAutoCloseResolvedIssues)
+	nt.NewIssues = c.Bool(flagNewIssues)
 
 	router := server.New(nt).Router()
 	if err := router.Run(c.String(flagListen)); err != nil {
