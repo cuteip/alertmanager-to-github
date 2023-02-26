@@ -27,7 +27,9 @@ go get github.com/pfnet-research/alertmanager-to-github
 
 ## Usage
 
-Start webhook server:
+Start webhook server: 1.a or 1.b
+
+### 1.a Personal Access Token
 
 ```shell
 $ read ATG_GITHUB_TOKEN
@@ -36,6 +38,17 @@ $ export ATG_GITHUB_TOKEN
 
 $ alertmanager-to-github start
 ```
+
+### 1.b GitHub App
+
+```shell
+$ alertmanager-to-github start \
+  --github-app-private-key-file /path/to/private-key.pem \
+  --github-app-app-id 12345 \
+  --github-app-installation-id 98765
+```
+
+### 2. Configure Alertmanager
 
 Add a receiver to Alertmanager config:
 
@@ -63,15 +76,19 @@ USAGE:
    alertmanager-to-github start [command options] [arguments...]
 
 OPTIONS:
-   --listen value               HTTP listen on (default: ":8080") [$ATG_LISTEN]
-   --github-url value           GitHub Enterprise URL (e.g. https://github.example.com) [$ATG_GITHUB_URL]
-   --labels value               Issue labels [$ATG_LABELS]
-   --body-template-file value   Body template file [$ATG_BODY_TEMPLATE_FILE]
-   --title-template-file value  Title template file [$ATG_TITLE_TEMPLATE_FILE]
-   --alert-id-template value    Alert ID template (default: "{{.Payload.GroupKey}}") [$ATG_ALERT_ID_TEMPLATE]
-   --github-token value         GitHub API token (command line argument is not recommended) [$ATG_GITHUB_TOKEN]
-   --auto-close-resolved-issues Close resolved issues automatically (default: true) [$ATG_AUTO_CLOSE_RESOLVED_ISSUES]
-   --help, -h                   show help (default: false)
+   --listen value                               HTTP listen on (default: ":8080") [$ATG_LISTEN]
+   --github-url value                           GitHub Enterprise URL (e.g. https://github.example.com) [$ATG_GITHUB_URL]
+   --labels value [ --labels value ]            Issue labels [$ATG_LABELS]
+   --keep-labels value [ --keep-labels value ]  Keep labels from GroupLabels and CommonLabels [$ATG_KEEP_LABELS]
+   --body-template-file value                   Body template file [$ATG_BODY_TEMPLATE_FILE]
+   --title-template-file value                  Title template file [$ATG_TITLE_TEMPLATE_FILE]
+   --alert-id-template value                    Alert ID template (default: "{{.Payload.GroupKey}}") [$ATG_ALERT_ID_TEMPLATE]
+   --github-token value                         GitHub API token (command line argument is not recommended) [$ATG_GITHUB_TOKEN]
+   --auto-close-resolved-issues                 Should issues be automatically closed when resolved (default: true) [$ATG_AUTO_CLOSE_RESOLVED_ISSUES]
+   --github-app-private-key-file value          GitHub App's private key file [$ATG_GITHUB_APP_PRIVATE_KEY_FILE]
+   --github-app-app-id value                    GitHub App's app id (required if github-app-private-key-file) (default: 0) [$ATG_GITHUB_APP_APP_ID]
+   --github-app-installation-id value           GitHub App's installation id (required if github-app-private-key-file) (default: 0) [$ATG_GITHUB_APP_INSTALLATION_ID]
+   --help, -h                                   show help (default: false)
 ```
 
 ### GitHub Enterprise
