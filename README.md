@@ -41,6 +41,14 @@ $ alertmanager-to-github start
 
 ### 1.b GitHub App
 
+app permissions:
+  - issue: read, write
+  - metadata: read
+
+App ID: `https://github.com/settings/apps/${app_name}` -> "About" -> "App ID"
+
+Installation ID: https://github.com/settings/installations -> "Installed GitHub Apps" -> Configure -> `https://github.com/settings/installations/${installation_id}`
+
 ```shell
 $ alertmanager-to-github start \
   --github-app-private-key-file /path/to/private-key.pem \
