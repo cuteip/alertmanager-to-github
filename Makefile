@@ -1,4 +1,5 @@
 TAG := $(shell git describe --tags --always --dirty)
+COMMIT := $(shell git rev-parse HEAD)
 IMAGE ?= ghcr.io/cuteip/alertmanager-to-github:$(TAG)
 ARCH ?= amd64
 ALL_ARCH ?= amd64 arm64
@@ -23,7 +24,7 @@ clean:
 
 .PHONY: docker-build
 docker-build:
-	$(DOCKER_BUILD) --pull --progress=plain --platform $(ARCH) -t $(IMAGE)-$(ARCH) .
+	$(DOCKER_BUILD) --pull --progress=plain --platform $(ARCH) -t $(IMAGE)-$(ARCH) --build-arg COMMIT=$(COMMIT) .
 
 docker-build-%:
 	$(MAKE) ARCH=$* docker-build

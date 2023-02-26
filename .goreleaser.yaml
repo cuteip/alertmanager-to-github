@@ -8,6 +8,8 @@ builds:
       - linux
       - windows
       - darwin
+    ldflags:
+      - -s -w -X github.com/pfnet-research/alertmanager-to-github/pkg/cli.commit={{.Commit}}
 
 archives:
   - format: tar.gz
