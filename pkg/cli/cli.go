@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 
+	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v43/github"
 	"github.com/pfnet-research/alertmanager-to-github/pkg/notifier"
 	"github.com/pfnet-research/alertmanager-to-github/pkg/server"
@@ -29,6 +31,9 @@ const flagAlertIDTemplate = "alert-id-template"
 const flagTemplateFile = "template-file"
 const flagPayloadFile = "payload-file"
 const flagAutoCloseResolvedIssues = "auto-close-resolved-issues"
+const flagGitHubAppPrivateKeyFile = "github-app-private-key-file"
+const flagGitHubAppAppID = "github-app-app-id"
+const flagGitHubAppInstallationID = "github-app-installation-id"
 
 const defaultPayload = `{
   "version": "4",
@@ -149,10 +154,9 @@ func App() *cli.App {
 						EnvVars: []string{"ATG_ALERT_ID_TEMPLATE"},
 					},
 					&cli.StringFlag{
-						Name:     flagGitHubToken,
-						Required: true,
-						Usage:    "GitHub API token (command line argument is not recommended)",
-						EnvVars:  []string{"ATG_GITHUB_TOKEN"},
+						Name:    flagGitHubToken,
+						Usage:   "GitHub API token (command line argument is not recommended)",
+						EnvVars: []string{"ATG_GITHUB_TOKEN"},
 					},
 					&cli.BoolFlag{
 						Name:     flagAutoCloseResolvedIssues,
@@ -160,6 +164,21 @@ func App() *cli.App {
 						Value:    true,
 						Usage:    "Should issues be automatically closed when resolved",
 						EnvVars:  []string{"ATG_AUTO_CLOSE_RESOLVED_ISSUES"},
+					},
+					&cli.StringFlag{
+						Name:    flagGitHubAppPrivateKeyFile,
+						Usage:   "GitHub App's private key file",
+						EnvVars: []string{"ATG_GITHUB_APP_PRIVATE_KEY_FILE"},
+					},
+					&cli.Int64Flag{
+						Name:    flagGitHubAppAppID,
+						Usage:   fmt.Sprintf("GitHub App's app id (required if %s)", flagGitHubAppPrivateKeyFile),
+						EnvVars: []string{"ATG_GITHUB_APP_APP_ID"},
+					},
+					&cli.Int64Flag{
+						Name:    flagGitHubAppInstallationID,
+						Usage:   fmt.Sprintf("GitHub App's installation id (required if %s)", flagGitHubAppPrivateKeyFile),
+						EnvVars: []string{"ATG_GITHUB_APP_INSTALLATION_ID"},
 					},
 				},
 			},
@@ -188,7 +207,7 @@ func App() *cli.App {
 	}
 }
 
-func buildGitHubClient(githubURL string, token string) (*github.Client, error) {
+func buildGitHubClientWithPersonalAccessToken(githubURL string, token string) (*github.Client, error) {
 	var err error
 	var client *github.Client
 
@@ -202,6 +221,31 @@ func buildGitHubClient(githubURL string, token string) (*github.Client, error) {
 		client = github.NewClient(tc)
 	} else {
 		client, err = github.NewEnterpriseClient(githubURL, githubURL, tc)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return client, nil
+}
+
+func buildGitHubClientWithGitHubApp(
+	githubURL string, appID int64, installationID int64, privateKeyFile string,
+) (*github.Client, error) {
+	var err error
+	var client *github.Client
+	tr := http.DefaultTransport
+
+	itr, err := ghinstallation.NewKeyFromFile(tr, appID, installationID, privateKeyFile)
+	if err != nil {
+		return nil, err
+	}
+
+	if githubURL == "" {
+		client = github.NewClient(&http.Client{Transport: itr})
+	} else {
+		itr.BaseURL = githubURL
+		client, err = github.NewEnterpriseClient(githubURL, githubURL, &http.Client{Transport: itr})
 		if err != nil {
 			return nil, err
 		}
@@ -235,9 +279,28 @@ func templateFromString(s string) (*template.Template, error) {
 }
 
 func actionStart(c *cli.Context) error {
-	githubClient, err := buildGitHubClient(c.String(flagGitHubURL), c.String(flagGitHubToken))
-	if err != nil {
-		return err
+	if c.String(flagGitHubToken) == "" && c.String(flagGitHubAppPrivateKeyFile) == "" {
+		return fmt.Errorf("required flag one of '%s', '%s'", flagGitHubToken, flagGitHubAppPrivateKeyFile)
+	}
+
+	var githubClient *github.Client
+	var err error
+	if c.String(flagGitHubToken) != "" {
+		githubClient, err = buildGitHubClientWithPersonalAccessToken(c.String(flagGitHubURL), c.String(flagGitHubToken))
+		if err != nil {
+			return err
+		}
+	} else {
+		if c.Int64(flagGitHubAppAppID) == 0 || c.Int64(flagGitHubAppInstallationID) == 0 {
+			return fmt.Errorf("required flag (if %s): '%s', '%s'", flagGitHubAppPrivateKeyFile, flagGitHubAppAppID, flagGitHubAppInstallationID)
+		}
+
+		githubClient, err = buildGitHubClientWithGitHubApp(
+			c.String(flagGitHubURL), c.Int64(flagGitHubAppAppID), c.Int64(flagGitHubAppInstallationID), c.String(flagGitHubAppPrivateKeyFile),
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	bodyReader, err := openReader(c.String(flagBodyTemplateFile), "templates/body.tmpl")

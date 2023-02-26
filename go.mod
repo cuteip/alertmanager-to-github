@@ -3,6 +3,7 @@ module github.com/pfnet-research/alertmanager-to-github
 go 1.19
 
 require (
+	github.com/bradleyfalzon/ghinstallation/v2 v2.1.0
 	github.com/gin-gonic/gin v1.8.2
 	github.com/google/go-github/v43 v43.0.0
 	github.com/prometheus/client_golang v1.14.0
@@ -22,7 +23,9 @@ require (
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.1 // indirect
 	github.com/goccy/go-json v0.10.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-github/v45 v45.2.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
