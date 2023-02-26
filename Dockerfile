@@ -22,11 +22,11 @@ RUN --mount=target=. \
     go test -v ./...
 
 FROM base AS build
-ARG TARGETOS TARGETARCH
+ARG TARGETOS TARGETARCH COMMIT
 RUN --mount=target=. \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /out/alertmanager-to-github .
+    GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags="-s -w -X github.com/pfnet-research/alertmanager-to-github/pkg/cli.commit=${COMMIT}" -o /out/alertmanager-to-github .
 
 FROM scratch AS export
 COPY --from=build /out/alertmanager-to-github /

@@ -102,6 +102,9 @@ const defaultPayload = `{
 var templates embed.FS
 
 func App() *cli.App {
+	cli.VersionPrinter = func(cCtx *cli.Context) {
+		fmt.Printf("version=%s commit=%s\n", cCtx.App.Version, commit)
+	}
 	return &cli.App{
 		Name:    os.Args[0],
 		Version: version,
